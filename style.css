@@ -3,10 +3,32 @@ html {
   width: 100%;
   margin: 0;
   overflow: hidden;
+  background-color: grey;
 }
 
-canvas{
-  width:100%;
-  height:100%
+#menu{
+  position: absolute;
+  top:0;
+  height:65vh;
+  width:10vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
+#subMenu{
+  height:35vh;
+  width:fit-content;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.menuItem{
+  height:10vh;
+  width:10vh;
+}
+
+.square{
+  border: solid grey .25vh;
+}

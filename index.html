@@ -7,9 +7,16 @@
   <title>Game Of Life Sim</title>
   <link href="style.css" rel="stylesheet" type="text/css" />
 </head>
-
-<body>
-  <canvas id="canvas"></canvas>
+<body ondragstart="return false;" ondrop="return false;">
+  <div id="menu">
+    <img class="menuItem" src="assets/NEXT.png" id="playPause"/>
+    <div id="subMenu">
+      <img class="menuItem" src="assets/BIDAUP.png" id="up"/>
+      <img class="menuItem" src="assets/ALIVE.png" id="currentStatus"/>
+      <img class="menuItem" src="assets/BIDADOWN.png" id="down"/>
+    </div>
+    <img class="menuitem" src="assets/TRASH.png" id="clear"/>
+  </div>
   <script src="script.js"></script>
 </body>
 
