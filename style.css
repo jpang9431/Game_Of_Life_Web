@@ -27,8 +27,11 @@ html {
 .menuItem{
   height:10vh;
   width:10vh;
+  image-rendering: crisp-edges;
 }
 
 .square{
-  border: solid grey .25vh;
+  border:none;
+  outline:none;
+  
 }
