@@ -24,12 +24,24 @@ function findRemove(htmlElm, array){
     return -1;
 }
 
+function updateNeighbors(row, col, board){
+    for(let tempRow = row-1; tempRow<=row+1; tempRow++){
+        for(let tempCol = col-1; tempCol<=col+1; tempCol++){
+            if (tempRow>=0&&tempRow<board.length&&tempCol>=0&&tempCol<board[0].length&&(tempRow!=row||tempCol!=col)){
+                board[tempRow][tempCol]++;
+            }
+        }
+    }
+}
+
 function updateBoard(){
     let numBoard = createBoard(board.length, board[0].length, 0);
     for(let row=0; row<board.length; row++){
         for(let col=0; col<board[0].length; col++){
             if (board[row][col].status=="RANDOM"){
                 setElm(board[row][col], getRandomStatus());
+            } else if (board[row][col].status=="ALIVE"){
+                
             }
         }
     }
