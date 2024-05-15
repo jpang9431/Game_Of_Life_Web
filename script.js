@@ -3,52 +3,130 @@ const horBoardSize = window.innerWidth - document.getElementById("menu").offsetW
 const squareSize = 20;
 const board = createBoard(calcNumSquares(vertBoardSize), calcNumSquares(horBoardSize), null);
 const path = "assets/";
-const statuses = ["DEAD", "ALIVE", "WALL", "RANDOM"];
+const statuses = ["DEAD", "ALIVE", "WALL", "RANDOM", "ZOMBIE"];
 var currentStatus = 1;
 var mouseDown = false;
 var rightClick = false;
 var updateInterval = null;
+var defaultCell = "RANDOM";
+var speed = 250;
 
-document.addEventListener("DOMContentLoaded", function (event) {
+document.addEventListener("DOMContentLoaded", function(event) {
     start();
-    
 });
 
-function findRemove(htmlElm, array){
-    for(let i=0; i<array.length; i++){
-        if (array[i].id==htmlElm.id){
-            array.splice(i,1);
+function findRemove(htmlElm, array) {
+    for (let i = 0; i < array.length; i++) {
+        if (array[i].id == htmlElm.id) {
+            array.splice(i, 1);
             return i;
         }
     }
     return -1;
 }
 
-function updateNeighbors(row, col, board){
-    for(let tempRow = row-1; tempRow<=row+1; tempRow++){
-        for(let tempCol = col-1; tempCol<=col+1; tempCol++){
-            if (tempRow>=0&&tempRow<board.length&&tempCol>=0&&tempCol<board[0].length&&(tempRow!=row||tempCol!=col)){
-                board[tempRow][tempCol]++;
+function updateNeighbors(row, col, board) {
+    for (let tempRow = row - 1; tempRow <= row + 1; tempRow++) {
+        for (let tempCol = col - 1; tempCol <= col + 1; tempCol++) {
+            let targetRow = tempRow;
+            let targetCol = tempCol;
+            if (targetRow < 0) {
+                targetRow = board.length - 1;
+            } else if (targetRow >= board.length) {
+                targetRow = 0;
+            }
+            if (targetCol < 0) {
+                targetCol = board[0].length - 1;
+            } else if (targetCol >= board[0].length) {
+                targetCol = 0;
+            }
+            if (targetRow != row || targetCol != col) {
+                board[targetRow][targetCol]++;
             }
         }
     }
 }
 
-function updateBoard(){
+function move(row, col) {
+    let posSquares = [];
+    for (let tempRow = row - 1; tempRow <= row + 1; tempRow++) {
+        for (let tempCol = col - 1; tempCol <= col + 1; tempCol++) {
+            let targetRow = tempRow;
+            let targetCol = tempCol;
+            if (targetRow < 0) {
+                targetRow = board.length - 1;
+            } else if (targetRow >= board.length) {
+                targetRow = 0;
+            }
+            if (targetCol < 0) {
+                targetCol = board[0].length - 1;
+            } else if (targetCol >= board[0].length) {
+                targetCol = 0;
+            }
+            if (board[targetRow][targetCol].status == "DEAD") {
+                posSquares.push([targetRow, targetCol]);
+            }
+        }
+    }
+    return posSquares[getRandomInt(0, posSquares.length - 1)];
+}
+
+function updateBoard() {
     let numBoard = createBoard(board.length, board[0].length, 0);
-    for(let row=0; row<board.length; row++){
-        for(let col=0; col<board[0].length; col++){
-            if (board[row][col].status=="RANDOM"){
+    let zombieNumBoard = createBoard(board.length, board[0].length, 0);
+    for (let row = 0; row < board.length; row++) {
+        for (let col = 0; col < board[0].length; col++) {
+            if (board[row][col].status == "ALIVE") {
+                updateNeighbors(row, col, numBoard);
+            } else if (board[row][col].status == "ZOMBIE") {
+                updateNeighbors(row, col, zombieNumBoard);
+            }
+        }
+    }
+    for (let row = 0; row < numBoard.length; row++) {
+        for (let col = 0; col < numBoard[0].length; col++) {
+            if (board[row][col].status == "ALIVE") {
+                aliveInteraction(row, col, numBoard[row][col], zombieNumBoard[row][col]);
+            } else if (board[row][col].status == "DEAD") {
+                deadInteraction(row, col, numBoard[row][col]);
+            } else if (board[row][col].status == "RANDOM") {
                 setElm(board[row][col], getRandomStatus());
-            } else if (board[row][col].status=="ALIVE"){
-                
+            } else if (board[row][col].status == "ZOMBIE") {
+                zombieInteraction(row,col, numBoard[row][col]);
             }
         }
     }
 }
 
-function getRandomStatus(){
-    return statuses[getRandomInt(0,statuses.length-1)];
+function zombieInteraction(row, col, numAlive){
+    if (numAlive>=2){
+        setElm(board[row][col], "DEAD");
+    } else if (getRandomInt(0,10)==0){
+        let targetMove = move(row,col);
+        setElm(board[targetMove[0]][targetMove[1]], "ZOMBIE");
+        setElm(board[row][col], "DEAD");
+    }
+}
+
+function deadInteraction(row, col, numAlive) {
+    if (numAlive == 3) {
+        setElm(board[row][col], "ALIVE");
+    } else if (getRandomInt(0, 10000) == 0) {
+        setElm(board[row][col], "ZOMBIE");
+    }
+}
+
+
+function aliveInteraction(row, col, numAlive, numZombies) {
+    if (numZombies > 0 && getRandomInt(0, 1) > 1) {
+        setElm(board[row][col], "ZOMBIE");
+    } else if (numAlive < 2 || numAlive > 3) {
+        setElm(board[row][col], "DEAD");
+    } 
+}
+
+function getRandomStatus() {
+    return statuses[getRandomInt(0, statuses.length - 1)];
 }
 
 function getRandomInt(min, max) {
@@ -67,19 +145,19 @@ function updateStatus(change) {
     document.getElementById("currentStatus").src = path + statuses[currentStatus] + ".png";
 }
 
-document.addEventListener("mousedown", function (event) {
+document.addEventListener("mousedown", function(event) {
     mouseDown = true;
-    if (event.button==2){
+    if (event.button == 2) {
         rightClick = true;
     }
 });
 
-document.addEventListener("mouseup", function (evnet) {
+document.addEventListener("mouseup", function(evnet) {
     mouseDown = false;
     rightClick = false;
 });
 
-document.addEventListener("mousemove", function (event) {
+document.addEventListener("mousemove", function(event) {
     let row = Math.floor(event.clientY / squareSize);
     let col = Math.floor(event.clientX / squareSize);
     if (row < 0) {
@@ -97,36 +175,41 @@ function calcNumSquares(size) {
     return (size - size % squareSize) / squareSize;
 }
 
-function setElm(elm, statusChange){
-    if (rightClick){
+function setElm(elm, statusChange) {
+    if (rightClick) {
         elm.src = path + statuses[0] + ".png";
         elm.status = statuses[0];
     } else {
-        if (elm.status=="ALIVE"&&statusChange!="ALIVE"){
-            findRemove(elm, aliveSquares);
-        } else if (elm.status="RANDOM"&&statusChange!="RANDOM"){
-            findRemove(elm, randomSquares);
-        }
-        elm.src = path + statusChange +".png";
+        elm.src = path + statusChange + ".png";
         elm.status = statusChange;
     }
 }
 
 function start() {
-    document.getElementById("playPause").addEventListener("click", function(event){
-        if (updateInterval==null){
-            updateInterval = setInterval(updateBoard, 30);
-            document.getElementById("playPause").src = path+"PAUSE.png";
+    document.getElementById("clear").addEventListener("click", function(event) {
+        clearInterval(updateInterval);
+        updateInterval = null;
+        document.getElementById("playPause").src = path + "NEXT.png";
+        for (let row = 0; row < board.length; row++) {
+            for (let col = 0; col < board[0].length; col++) {
+                setElm(board[row][col], defaultCell);
+            }
+        }
+    })
+    document.getElementById("playPause").addEventListener("click", function(event) {
+        if (updateInterval == null) {
+            updateInterval = setInterval(updateBoard, speed);
+            document.getElementById("playPause").src = path + "PAUSE.png";
         } else {
             clearInterval(updateInterval);
             updateInterval = null;
-            document.getElementById("playPause").src = path+"NEXT.png";
+            document.getElementById("playPause").src = path + "NEXT.png";
         }
     });
-    document.getElementById("up").addEventListener("click", function (event) {
+    document.getElementById("up").addEventListener("click", function(event) {
         updateStatus(-1);
     });
-    document.getElementById("down").addEventListener("click", function (event) {
+    document.getElementById("down").addEventListener("click", function(event) {
         updateStatus(1);
     });
     document.getElementById("menu").style.left = window.innerWidth - document.getElementById("menu").offsetWidth + "px";
@@ -136,7 +219,7 @@ function start() {
             board[row][col].src = path + "DEAD.png";
             board[row][col].isProcessing = false;
             board[row][col].status = "DEAD";
-            board[row][col].addEventListener("click", function (event) {
+            board[row][col].addEventListener("click", function(event) {
                 let elm = (event.target || event.srcElement);
                 if (!elm.isProcessing) {
                     setElm(elm, statuses[currentStatus]);
