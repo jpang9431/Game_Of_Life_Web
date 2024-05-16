@@ -1,0 +1,43 @@
+body, html{
+  background-color: black;
+  width: 100%;
+  height: 100%;
+  color:white;
+  margin: 0;
+  overflow: hidden;
+}
+
+p{
+  text-align: center;
+}
+
+#infoText{
+  position: absolute;
+  left:10%;
+  top:45vh;
+  width:80%;
+  height:55vh;
+  text-align: left;
+}
+
+#backImage{
+  position: absolute;
+  left:0;
+  top:0;
+}
+
+img{
+  width:10vh;
+  height:10vh;
+}
+
+.horMenu{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  position: absolute;
+  width:100%;
+  height:20vh;
+  left:0px;
+  top:20vh;
+}
