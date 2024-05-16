@@ -9,7 +9,7 @@ html {
 #menu{
   position: absolute;
   top:0;
-  height:65vh;
+  height:75vh;
   width:10vh;
   display: flex;
   flex-direction: column;

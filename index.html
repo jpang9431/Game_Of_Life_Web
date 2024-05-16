@@ -5,18 +5,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
   <title>Game Of Life Sim</title>
-  <link href="style.css" rel="stylesheet" type="text/css" />
+  <link href="start.css" rel="stylesheet" type="text/css" />
 </head>
 <body ondragstart="return false;" ondrop="return false;" oncontextmenu="return false;">
-  <div id="menu">
-    <img class="menuItem" src="assets/NEXT.png" id="playPause"/>
-    <div id="subMenu">
-      <img class="menuItem" src="assets/BIDAUP.png" id="up"/>
-      <img class="menuItem" src="assets/ALIVE.png" id="currentStatus"/>
-      <img class="menuItem" src="assets/BIDADOWN.png" id="down"/>
-    </div>
-    <img class="menuitem" src="assets/TRASH.png" id="clear"/>
-  </div>
+  <h1 id="startTitle">Game Of Life</h1>
+  <a href = "game.html">
+    <input class=startButtons id=startPlay type = "button" value = "Start">
+  </a>
+
+  <a href = "info.html">
+    <input class=startButtons id=startRules type = "button" value = "Rules"/>
+  </a>
+
+  <a href = "level.html">
+    <input class=startButtons id=startLevel type = "button" value = "Levels"/>
+  </a>
   <script src="script.js"></script>
 </body>
 
