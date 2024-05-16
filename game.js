@@ -3,7 +3,7 @@ const horBoardSize = window.innerWidth - document.getElementById("menu").offsetW
 const squareSize = 20;
 const board = createBoard(calcNumSquares(vertBoardSize), calcNumSquares(horBoardSize), null);
 const path = "assets/";
-const statuses = ["DEAD", "ALIVE", "WALL", "RANDOM", "ZOMBIE"];
+const statuses = ["DEAD", "ALIVE", "WALL", "RANDOM", "ZOMBIE", "HUNTER"];
 var currentStatus = 1;
 var mouseDown = false;
 var rightClick = false;
@@ -47,21 +47,21 @@ function updateNeighbors(row, col, board) {
     }
 }
 
-function isWithinRange(row1, col1, row2, col2){
-    return Math.sqrt(Math.pow(row1-row2, 2)+Math.pow(col1-col2,2))<5;
+function isWithinRange(row1, col1, row2, col2) {
+    return Math.sqrt(Math.pow(row1 - row2, 2) + Math.pow(col1 - col2, 2)) < 5;
 }
 
-function calcDistance(row1, col1, row2, col2){
-    return Math.sqrt(Math.pow(row1-row2, 2)+Math.pow(col1-col2,2));
+function calcDistance(row1, col1, row2, col2) {
+    return Math.sqrt(Math.pow(row1 - row2, 2) + Math.pow(col1 - col2, 2));
 }
 
-function moveTowards(row1, col1, row2, col2){
+function moveTowards(row1, col1, row2, col2) {
     let square = [];
     let posSquares = move(row1, col1);
     let distance = Number.MAX_SAFE_INTEGER;
-    for(let i=0; i<posSquares.length; i++){
+    for (let i = 0; i < posSquares.length; i++) {
         let tempDistance = calcDistance(posSquares[i][0], posSquares[i][1], row2, col2);
-        if (tempDistance<distance){
+        if (tempDistance < distance) {
             square = posSquares[i];
             distance = tempDistance;
         }
@@ -93,12 +93,12 @@ function move(row, col) {
     return posSquares;
 }
 
-function findClose(aliveSquares, row,col){
+function findClose(aliveSquares, row, col) {
     let distance = Number.MAX_SAFE_INTEGER;
     let square = [];
-    for(let i=0; i<aliveSquares.length; i++){
-        let tempDistance = calcDistance(row,col,aliveSquares[i][0],aliveSquares[i][1])
-        if (tempDistance<distance){
+    for (let i = 0; i < aliveSquares.length; i++) {
+        let tempDistance = calcDistance(row, col, aliveSquares[i][0], aliveSquares[i][1])
+        if (tempDistance < distance) {
             distance = tempDistance;
             square = aliveSquares[i];
         }
@@ -110,17 +110,18 @@ function updateBoard() {
     let numBoard = createBoard(board.length, board[0].length, 0);
     let zombieNumBoard = createBoard(board.length, board[0].length, 0);
     let aliveSquares = [];
+    let zombieSquares = [];
     for (let row = 0; row < board.length; row++) {
         for (let col = 0; col < board[0].length; col++) {
             if (board[row][col].status == "ALIVE") {
-                aliveSquares.push([row,col]);
+                aliveSquares.push([row, col]);
                 updateNeighbors(row, col, numBoard);
             } else if (board[row][col].status == "ZOMBIE") {
+                zombieSquares.push([row,col]);
                 updateNeighbors(row, col, zombieNumBoard);
             }
         }
     }
-    
     for (let row = 0; row < numBoard.length; row++) {
         for (let col = 0; col < numBoard[0].length; col++) {
             if (board[row][col].status == "ALIVE") {
@@ -130,28 +131,67 @@ function updateBoard() {
             } else if (board[row][col].status == "RANDOM") {
                 setElm(board[row][col], getRandomStatus());
             } else if (board[row][col].status == "ZOMBIE") {
-                zombieInteraction(row,col, numBoard[row][col], aliveSquares, zombieNumBoard);
+                zombieInteraction(row, col, numBoard[row][col], aliveSquares, zombieNumBoard);
+            } else if (board[row][col].status == "HUNTER") {
+                hunterInteraction(row, col, zombieSquares, zombieNumBoard);
             }
         }
     }
 }
 
-function zombieInteraction(row, col, numAlive, aliveSquares, zombieNumBoard){
-    if (numAlive>=zombieNumBoard[row][col]&&numAlive!=0){
-        setElm(board[row][col], "DEAD");
+function hunterInteraction(row, col, zombieSuqares, zombieNumBoard){
+    if (zombieNumBoard[row][col]>0){
+        for (let tempRow = row - 1; tempRow <= row + 1; tempRow++) {
+            for (let tempCol = col - 1; tempCol <= col + 1; tempCol++) {
+                let targetRow = tempRow;
+                let targetCol = tempCol;
+                if (targetRow < 0) {
+                    targetRow = board.length - 1;
+                } else if (targetRow >= board.length) {
+                    targetRow = 0;
+                }
+                if (targetCol < 0) {
+                    targetCol = board[0].length - 1;
+                } else if (targetCol >= board[0].length) {
+                    targetCol = 0;
+                }
+                if (board[targetRow][targetCol].status == "ZOMBIE") {
+                    setElm(board[targetRow][targetCol], "DEAD");
+                }
+            }
+        }
     } else {
-        let closeAlive = findClose(aliveSquares,row,col);
-        if (closeAlive.length>=0){
+        let closeAlive = findClose(zombieSuqares, row, col);
+        if (closeAlive.length >= 0) {
             let moveTowardsSquare = moveTowards(row, col, closeAlive[0], closeAlive[1]);
-            if (moveTowardsSquare.length!=0){
-                console.log(row-moveTowardsSquare[0]+"|"+(col-moveTowardsSquare[1]));
-                moveZombie(row,col,moveTowardsSquare[0],moveTowardsSquare[1]);
-            } 
+            if (moveTowardsSquare.length != 0) {
+                moveElm(row, col, moveTowardsSquare[0], moveTowardsSquare[1]);
+            }
         }
     }
 }
 
-function moveZombie(row1, col1, row2, col2){
+function moveElm(row1, col1, row2, col2){
+    setElm(board[row2][col2], board[row1][col1].status);
+    setElm(board[row1][col1], "DEAD");
+}
+
+function zombieInteraction(row, col, numAlive, aliveSquares, zombieNumBoard) {
+    if (numAlive >= zombieNumBoard[row][col] && numAlive != 0) {
+        setElm(board[row][col], "DEAD");
+    } else {
+        let closeAlive = findClose(aliveSquares, row, col);
+        if (closeAlive.length >= 0) {
+            let moveTowardsSquare = moveTowards(row, col, closeAlive[0], closeAlive[1]);
+            if (moveTowardsSquare.length != 0) {
+                //console.log(row - moveTowardsSquare[0] + "|" + (col - moveTowardsSquare[1]));
+                moveZombie(row, col, moveTowardsSquare[0], moveTowardsSquare[1]);
+            }
+        }
+    }
+}
+
+function moveZombie(row1, col1, row2, col2) {
     setElm(board[row1][col1], "DEAD");
     setElm(board[row2][col2], "ZOMBIE");
 }
@@ -166,11 +206,11 @@ function deadInteraction(row, col, numAlive) {
 
 
 function aliveInteraction(row, col, numAlive, numZombies) {
-    if (numZombies >= numAlive && numZombies!=0) {
+    if (numZombies >= numAlive && numZombies != 0) {
         setElm(board[row][col], "ZOMBIE");
     } else if (numAlive < 2 || numAlive > 3) {
         setElm(board[row][col], "DEAD");
-    } 
+    }
 }
 
 function getRandomStatus() {
